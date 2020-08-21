@@ -1,0 +1,58 @@
+{   
+    "title" : "Flashing Red",
+    "description" : "Light On/Off Red for 0.5s/0.5s.",
+    "script" : [
+        {
+            "step" : 0,
+            "command" : "LightUp",
+            "group" : [ 
+                { "R" : 255, "G" : 0, "B" : 0, "W" : 0, "Y" : 0 } 
+            ],
+            "duration" : 5,
+            "dutytime" : 5,
+            "effect" : {
+                "priority" : 0,
+                "transit" : "none"
+            },
+            "attribute" : {
+                "nowait" : 0,
+                "preserve" : 0,
+                "random" : 0,
+                "repeatable" : 0
+            }
+        },
+
+        {
+            "step" : 1,
+            "command" : "LightUp",
+            "group" : [ 
+                { "R" : 0, "G" : 0, "B" : 0, "W" : 0, "Y" : 0 } 
+            ],
+            "duration" : 5,
+            "dutytime" : 5,
+            "effect" : {
+                "priority" : 0,
+                "transit" : "none"
+            },
+            "attribute" : {
+                "nowait" : 0,
+                "preserve" : 0,
+                "random" : 0,
+                "repeatable" : 0
+            }
+        },
+
+        {
+            "step" : 2,
+            "command" : "Goto",
+            "scenario" : -1,
+            "target" : 0,
+            "repeat" : -1,
+            "count" : 0
+        }
+    ],
+    "colors" : [
+        "00FF0000000000000000",
+        "00000000000000000000"
+    ]
+}

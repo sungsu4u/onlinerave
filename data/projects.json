@@ -1,0 +1,26 @@
+[
+    
+    {
+        "Code" : "demo_kbx",
+        "Name" : "Demo for Online-RAVE",
+        "Release" : "2020-08-01",
+        "DateFrom" : "2020-08-08",
+        "DateTo" : "2020-08-10",
+        "Auth" : "Ruifan Japan",
+        "AuthUrl" : "http://ruifan.co.jp/",
+        "Place" : "Tokyo",
+        "Artist" : "Calvin",
+        "ArtistUrl" : "http://calvinlab.com",
+        "Type" : "Live",
+        "Groups" : 1,
+        "Hosting" : "YouTube",
+        "HostingUrl" : "https://www.youtube.com/channel/UCthnYoTquwDJ_8pEmgiZ7kw",
+        "Status" : "Prepare",
+        "Model" : "KBX5.1BLE",
+
+        "Active" : true,
+
+        "Scenarios" : [0, 1, 4, 5, 6, "menu"]
+    }
+
+]

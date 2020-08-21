@@ -1,0 +1,364 @@
+
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Sample illustrating the use of Web Bluetooth / Device Info.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Web Bluetooth</title>
+    <script>
+      // Add a global error event listener early on in the page load, to help ensure that browsers
+      // which don't support specific functionality still end up displaying a meaningful message.
+      window.addEventListener('error', function(error) {
+        if (ChromeSamples && ChromeSamples.setStatus) {
+          console.error(error);
+          ChromeSamples.setStatus(error.message + ' (Your browser may not support this feature.)');
+          error.preventDefault();
+        }
+      });
+    </script>
+    
+  </head>
+
+  <body>
+    <h1>KBX Bluetooth</h1>
+
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const searchParams = new URL(location).searchParams;
+    const inputs = Array.from(document.querySelectorAll('input[id]'));
+
+    inputs.forEach(input => {
+      if (searchParams.has(input.id)) {
+        if (input.type == 'checkbox') {
+          input.checked = searchParams.get(input.id);
+        } else {
+          input.value = searchParams.get(input.id);
+          input.blur();
+        }
+      }
+      if (input.type == 'checkbox') {
+        input.addEventListener('change', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.checked) {
+            newSearchParams.set(input.id, event.target.checked);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      } else {
+        input.addEventListener('input', function(event) {
+          const newSearchParams = new URL(location).searchParams;
+          if (event.target.value) {
+            newSearchParams.set(input.id, event.target.value);
+          } else {
+            newSearchParams.delete(input.id);
+          }
+          history.replaceState({}, '', Array.from(newSearchParams).length ?
+              location.pathname + '?' + newSearchParams : location.pathname);
+        });
+      }
+    });
+  });
+</script>
+
+
+<p>1. Connect Device</p>
+
+<form>
+  <button>Scan KBX</button>
+</form>
+
+<p>2. Actions</p>
+
+<p>
+  <!-- <input id="description" type="text" placeholder="Characteristic User Description" hidden> -->
+  <input id="intervalValue" type="text" placeholder="250" value=250>ms
+  <button id="writeButton">Start Flashing</button>
+  <button id="maxButton">Maximum Speed</button>
+</p>
+
+<script>
+  var ChromeSamples = {
+    log: function() {
+      var line = Array.prototype.slice.call(arguments).map(function(argument) {
+        return typeof argument === 'string' ? argument : JSON.stringify(argument);
+      }).join(' ');
+
+      document.querySelector('#log').textContent += line + '\n';
+    },
+
+    clearLog: function() {
+      document.querySelector('#log').textContent = '';
+    },
+
+    setStatus: function(status) {
+      document.querySelector('#status').textContent = status;
+    },
+
+    setContent: function(newContent) {
+      var content = document.querySelector('#content');
+      while(content.hasChildNodes()) {
+        content.removeChild(content.lastChild);
+      }
+      content.appendChild(newContent);
+    }
+  };
+</script>
+
+<hr>
+<h3>Live Output</h3>
+<div id="output" class="output">
+  <div id="content"></div>
+  <div id="status"></div>
+  <pre id="log"></pre>
+</div>
+
+
+
+
+<script>
+var myservice;
+
+function onButtonClick() {
+  
+  let filters = [];
+  filters.push({services: ['00000000-0000-1000-8000-00805f9b34fb']});
+  
+  let options = {};
+  options.filters = filters;
+ 
+  log('Requesting Bluetooth Device...');
+  log('with ' + JSON.stringify(options));
+  
+  navigator.bluetooth.requestDevice(options)
+      .then(device => {
+          log('> Name:             ' + device.name);
+          log('> Id:               ' + device.id);
+          return device.gatt.connect();
+      })
+      .then(server => {
+          log('Getting GAP Service...');
+          return server.getPrimaryService('00000000-0000-1000-8000-00805f9b34fb');
+      })
+      .then(service => {
+          log('Getting Characteristic...');
+          return service.getCharacteristic('00000000-0000-1000-8000-00805f9b34fb');
+      })
+      .then(characteristic => {
+          log('Getting Descriptor...');
+          myservice = characteristic;
+          var  rgb = new Uint8Array([ 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]);
+          return characteristic.writeValue(rgb);
+      })
+      .catch(error => {
+          log('Argh! ' + error);
+      });
+}
+
+var b = false;
+var rgb = new Uint8Array([ 0x00, 0x40, 0x40, 0x40, 0x40, 0x40, 0x00, 0x00, 0x00, 0x00 ]);
+var off = new Uint8Array([ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]);
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+
+var lasttime = new Date();
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+var flag = 0;
+
+
+
+async function flashing() {
+  //var mychar = myservice.getCharacteristic('00000000-0000-1000-8000-00805f9b34fb');
+
+  while (flag > 0) {
+    await sleep(1);
+  }
+
+  flag = 1;
+
+  
+  const starttime = new Date();
+  
+  if (b)
+    myservice.writeValue(rgb)
+    .then(() => {
+      flag = 0;
+      
+      const newtime = new Date();
+      log("+" + (newtime - starttime));
+      lasttime = newtime;
+
+    });
+  else
+    myservice.writeValue(off)
+    .then(() => {
+      flag = 0;
+
+      const newtime = new Date();
+      log("+" + (newtime - starttime));
+      lasttime = newtime;
+
+    });
+
+  b = !b;
+}
+
+var intervalTimer = 0;
+
+function onWriteButtonClick() {  
+
+  if (intervalTimer != 0) {
+    
+    clearInterval(intervalTimer);
+    intervalTimer = 0;
+    document.querySelector('#writeButton').textContent = "Start Flashing";
+
+    console.log("stop flashing");
+
+  } else {
+    if (!isNaN( document.querySelector('#intervalValue').value )) {
+
+      const interval = new Number(document.querySelector('#intervalValue').value);
+
+      intervalTimer = setInterval(() => flashing(), interval);
+      document.querySelector('#writeButton').textContent = "Stop Flashing";
+
+      console.log("start flashing ... " + interval);
+      ChromeSamples.clearLog();
+
+    } else {
+      alert("Input numbers for the interval.");
+    }
+  }
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+async function maxFlashing() {
+  //var mychar = myservice.getCharacteristic('00000000-0000-1000-8000-00805f9b34fb');
+
+  if (document.querySelector('#maxButton').flashing) {
+    
+    // Stop flashing
+    document.querySelector('#maxButton').flashing = false;
+    
+    return;
+
+  } else {
+
+    // Start flashing
+    document.querySelector('#maxButton').flashing
+
+  }
+
+  document.querySelector('#writeButton').textContent = "Stop Maximum";
+  
+  const starttime = new Date();
+  
+  if (b)
+    myservice.writeValue(rgb)
+    .then(() => {
+      flag = 0;
+      
+      const newtime = new Date();
+      // log("+" + (newtime - starttime));
+      log((newtime - starttime) + ", " + (starttime - lasttime))
+      lasttime = newtime;
+
+      setTimeout(() => maxFlashing());
+
+    });
+  else
+    myservice.writeValue(off)
+    .then(() => {
+      flag = 0;
+
+      const newtime = new Date();
+      // log("+" + (newtime - starttime));
+      log((newtime - starttime) + ", " + (starttime - lasttime))
+      lasttime = newtime;
+
+      setTimeout(() => maxFlashing());
+
+    });
+
+  b = !b;
+}
+
+function runMaxFlashing() {
+  
+}
+
+
+
+
+</script>
+    
+  
+
+  
+
+
+<script>
+  document.querySelector('form').addEventListener('submit', (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (isWebBluetoothEnabled()) {
+      ChromeSamples.clearLog();
+      onButtonClick();
+    }
+  });
+
+  document.querySelector('#writeButton').addEventListener('click', () => {
+    onWriteButtonClick();
+  });
+
+  document.querySelector('#maxButton').flashing = false;
+  document.querySelector('#maxButton').addEventListener('click', () => {
+
+    maxFlashing();
+  });
+</script>
+
+<script>
+  log = ChromeSamples.log;
+
+  function isWebBluetoothEnabled() {
+    if (navigator.bluetooth) {
+      return true;
+    } else {
+      ChromeSamples.setStatus('Web Bluetooth API is not available.\n' +
+          'Please make sure the "Experimental Web Platform features" flag is enabled.');
+      return false;
+    }
+  }
+</script>
+
+
+    
+  </body>
+</html>

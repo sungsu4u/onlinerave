@@ -1,0 +1,40 @@
+{   
+    "title" : "Red",
+    "description" : "Light up Red.",
+    "script" : [
+        {
+            "step" : 0,
+            "command" : "LightUp",
+            "group" : [ 
+                { "R" : 255, "G" : 0, "B" : 0, "W" : 0, "Y" : 0 } 
+            ],
+            "duration" : 10,
+            "dutytime" : 10,
+            "effect" : {
+                "priority" : 0,
+                "transit" : "none"
+            },
+            "attribute" : {
+                "nowait" : 0,
+                "preserve" : 0,
+                "random" : 0,
+                "repeatable" : 1
+            }
+        },
+
+        {
+            "step" : 1,
+            "command" : "Goto",
+            "target" : { 
+                "scenario" : -1, 
+                "step" : 0 
+            },
+            "repeat" : -1,
+            "count" : 0
+        }
+    ],
+    "colors" : [
+        "00FF0000000000000000",
+        "00FF0000000000000000"
+    ]
+}
